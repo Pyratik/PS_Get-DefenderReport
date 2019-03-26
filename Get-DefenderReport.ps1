@@ -279,6 +279,7 @@ $computersToReport = foreach ($computerName in ($aggregateComputerInformation | 
         'Threat Name'         = $($threatsfound | Select-Object -First 1)
         'Color Coding'        = $reportColorCoding
         'Primary Column Name' = 'Computer Name'
+        'Sort'                = 0
     }
     if ($threatsFound.count -le 1){
         continue
@@ -299,6 +300,7 @@ $computersToReport = foreach ($computerName in ($aggregateComputerInformation | 
             'Threat Name'         = $threatsFound[$i]
             'Color Coding'        = $reportColorCoding
             'Primary Column Name' = 'Computer Name'
+            'Sort'                = $i
         }
         $i++
     }
@@ -311,8 +313,9 @@ if ($computersToReport){
     }
     # Send the sorted Windows Defender info for all computers that failed any status checks to New-DefenderReport to convert the info into an HTML table end email the table
     $emailBody = $computersToReport.foreach({[pscustomobject]$_ }) | 
-        Sort-Object -Property 'Computer Name','Threat Name' | 
-            New-HTMLReport
+        Sort-Object -Property 'Computer Name','Sort' | 
+            Select-Object -Property 'Computer Name',<#'OS','StartType','LastUpdate',#>'Defender Enabled','Service Status','A/V Product','Definition Age','Last Full Scan','Threat Name','Color Coding','Primary Column Name' |
+                New-HTMLReport
 
     $emailParameters = @{
         'To'         = $emailTo
